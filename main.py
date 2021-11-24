@@ -1,12 +1,11 @@
 # The resolution of game window is 1600*900
-# There is "help" button in main menu of the game, where you can find how to play
-# cheat: "+" "-" can change the point
-# If you didn't enter the name, the name will be "anonymous" in default
+# Other information and introduction are in README
 
 import json
 import random
 import time
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 
 
@@ -30,53 +29,51 @@ class Leaderboard:
         self.leaderboard = []
         file = open("leaderboard.txt", "r")
         for line in file:
-            # username, score, date
-            if (line.lstrip())[0] == "#":  # ignore the comment
+            if line.rstrip() == "":  # empty line
                 continue
+            # username, score, date
             data = line.rstrip().split(",")
-            self.leaderboard.append({"name": data[0], "score": data[1], "time": data[2]})
-        self.sortlist()
-
-    def sortlist(self):
-        self.leaderboard = sorted(self.leaderboard, key=lambda item: item["score"], reverse=True)
-
-    def textformat(self):
-        text = ""
-        if (listnumber := len(self.leaderboard)) > 9:
-            listnumber = 9
-        for i in range(0, listnumber):
-            text += f"Name:{self.leaderboard[i]['name']}|Score:{self.leaderboard[i]['score']}|Time:{self.leaderboard[i]['time']}\n"
-        return text
+            self.leaderboard.append([data[0], int(data[1]), data[2]])
+        self.leaderboard = sorted(self.leaderboard, key=lambda item: item[1], reverse=True)
 
     def addrecord(self, name, score):
         text = ""
         if self.getscore(name) == 0:
-            self.leaderboard.append(
-                {"name": name, "score": score, "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())})
+            # user not recorded
+            self.leaderboard.append([name, int(score), time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())])
         else:
             for item in self.leaderboard:
-                if item["name"] == name:
-                    item["score"] = score
-                    item["time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        print(self.leaderboard)
+                if item[0] == name:
+                    # user exists
+                    item[1] = score
+                    item[2] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         file = open("leaderboard.txt", "w")
         for item in self.leaderboard:
-            text += f"{item['name']},{item['score']},{item['time']}\n"
+            text += f"{item[0]},{item[1]},{item[2]}\n"
         file.write(text)
         file.close()
 
     def getscore(self, name):
         for item in self.leaderboard:
-            if item["name"] == name:
-                return int(item["score"])
+            if item[0] == name:
+                return int(item[1])
+        # user not found
         return 0
 
     def displayboard(self):
         boardwindow = tk.Tk()
         boardwindow.title("Leader Board")
-        boardwindow.geometry("500x600")
-        board = tk.Label(boardwindow, text=self.textformat())
-        board.pack()
+        boardwindow.geometry("450x400")
+        board = ttk.Treeview(boardwindow, columns=["Name", "Score", "Date"], show="headings")
+        board.column("Name", width=200, anchor="center")
+        board.column("Score", width=50, anchor="center")
+        board.column("Date", width=200, anchor="center")
+        board.heading("Name", text="Name")
+        board.heading("Score", text="Score")
+        board.heading("Date", text="Date")
+        for i in range(0, len(self.leaderboard)):
+            board.insert(index=i, values=(self.leaderboard[i]), parent='')
+        board.grid()
 
 
 config = Config()
@@ -99,11 +96,12 @@ def help():
 
 
 def initialise_window():
+    print("Welcome!")
     mainwindow.title("Eat fish")
     mainwindow.geometry("1600x900")
 
     global Label_Gametitle
-    Label_Gametitle = tk.Label(mainwindow, text="A simple game", bg="green", font="Arial 32", width=20, height=5)
+    Label_Gametitle = tk.Label(mainwindow, text="A simple game", bg="#99CCFF", font="Arial 32", width=20, height=5)
     Label_Gametitle.pack()
 
     global Button_Play
@@ -121,7 +119,7 @@ def initialise_window():
     Button_LB.place(x=800, y=450, anchor="center")
 
     global Username
-    Username = "anonymous"
+    Username = "anonymous"  # set default user name
 
     global Label_Nameinput
     Label_Nameinput = tk.Label(mainwindow, text="Your user name:", font="Arial 12")
@@ -231,9 +229,14 @@ def startgame():
 
     def generatefishpos():
         safe_distance = 30
-        while (pos := [random.randint(safe_distance, config.canvassize[0] - safe_distance),
-                       random.randint(safe_distance, config.canvassize[1] - safe_distance)]) in Trajectory:
-            continue
+        pos = [random.randint(safe_distance, config.canvassize[0] - safe_distance),
+               random.randint(safe_distance, config.canvassize[1] - safe_distance)]
+        if pos in Trajectory:  # pos on trajectory
+            return generatefishpos()
+        for i in Trajectory:  # pos is close to trajectory
+            if (i[0] - safe_distance < pos[0] < i[1] + safe_distance) and (
+                    i[1] - safe_distance < pos[1] < i[1] + safe_distance):
+                return generatefishpos()
         return pos
 
     def UpdateFish():
@@ -260,11 +263,9 @@ def startgame():
             GameScoreboard[0].config(text=f"Score: {point}")
             GameScoreboard[0].update()
 
-    # print("Welcome") # for debug
     # Hide elements on previous interface
     Label_Gametitle.pack_forget()
     Button_Play.place_forget()
-    # Button_Exit.place_forget() # just place to another position
     Button_Help.place_forget()
     Button_LB.place_forget()
     Label_Author.place_forget()
@@ -283,7 +284,6 @@ def startgame():
     global NameInput_var
     if NameInput_var.get() != "":
         Username = NameInput_var.get()
-    print(Username)
 
     Trajectory = []  # list to store the trajectory
 
@@ -303,13 +303,13 @@ def startgame():
     GameCanvas.pack()
 
     GameScoreboard = [None, None, None]  # 0 - Points,1 - Distance,2 - Best Score
-    GameScoreboard[0] = tk.Label(mainwindow, text=f"Score: {point}", font="Arial 15", width=15, height=4)
-    GameScoreboard[1] = tk.Label(mainwindow, text=f"Distance: {distance}", bg="#f57b42", font="Arial 15", width=15,
+    GameScoreboard[0] = tk.Label(mainwindow, text=f"Score: {point}", bg="#CCFF99", font="Arial 15", width=15, height=4)
+    GameScoreboard[1] = tk.Label(mainwindow, text=f"Distance: {distance}", bg="#FFCC99", font="Arial 15", width=15,
                                  height=4)
     GameScoreboard[2] = tk.Label(mainwindow, text=f"Best Score: {leaderboard.getscore(Username)}", font="Arial 10")
     GameScoreboard[0].place(x=0, y=900, anchor="sw")
     GameScoreboard[1].place(x=1600, y=900, anchor="se")
-    GameScoreboard[2].place(x=200, y=900, anchor="s")
+    GameScoreboard[2].place(x=250, y=900, anchor="s")
     GameCanvas.update()
     mainwindow.mainloop()
 
