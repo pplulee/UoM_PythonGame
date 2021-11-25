@@ -5,8 +5,8 @@ import json
 import random
 import time
 import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
+from tkinter import ttk
 
 
 class Config:
@@ -14,14 +14,65 @@ class Config:
         configfile = open("config.json", "r")
         self.configdata = json.loads(configfile.read())
         configfile.close()
-        self.canvassize = self.configdata["canvas_size"]
-        self.movespeed = self.configdata["move_speed"]
-        self.keyup = self.configdata["key_up"]
-        self.keydown = self.configdata["key_down"]
-        self.keyleft = self.configdata["key_left"]
-        self.keyright = self.configdata["key_right"]
-        self.bosskey = self.configdata["bosskey"]
-        self.bgcolor = self.configdata["bgcolor"]
+        self.canvassize = [1600, 800]
+
+    def saveconfig(self):
+        # write file
+        configfile = open("config.json", "w")
+        configfile.write(json.dumps(self.configdata, indent=4, separators=(',', ':')))
+        configfile.close()
+
+    def setting(self):
+        def save():
+            self.configdata["bgcolor"] = entry_bg.get()
+            self.configdata["key_up"] = entry_keyup.get()
+            self.configdata["key_down"] = entry_keydown.get()
+            self.configdata["key_left"] = entry_keyleft.get()
+            self.configdata["key_right"] = entry_keyright.get()
+            self.configdata["bosskey"] = entry_bosskey.get()
+            self.configdata["move_speed"] = int(entry_movespeed.get())
+            self.saveconfig()
+            tk.messagebox.showinfo("Notice", "Saved successfully!")
+            settingwindow.destroy()  # destroy the window
+
+        settingwindow = tk.Tk()
+        settingwindow.title("Game settings")
+        settingwindow.geometry("300x300")
+        label_bg = tk.Label(settingwindow, text="Background color").place(x=0, y=20, anchor="w")
+        label_keyup = tk.Label(settingwindow, text="Key Up").place(x=0, y=50, anchor="w")
+        label_keydown = tk.Label(settingwindow, text="Key down").place(x=0, y=80, anchor="w")
+        label_keyright = tk.Label(settingwindow, text="Key Right").place(x=0, y=110, anchor="w")
+        label_keyleft = tk.Label(settingwindow, text="Key Left").place(x=0, y=140, anchor="w")
+        label_bosskey = tk.Label(settingwindow, text="Boss Key").place(x=0, y=170, anchor="w")
+        label_movespeed = tk.Label(settingwindow, text="Move Speed").place(x=0, y=200, anchor="w")
+
+        entry_bg = tk.Entry(settingwindow)
+        entry_keyup = tk.Entry(settingwindow)
+        entry_keydown = tk.Entry(settingwindow)
+        entry_keyright = tk.Entry(settingwindow)
+        entry_keyleft = tk.Entry(settingwindow)
+        entry_bosskey = tk.Entry(settingwindow)
+        entry_movespeed = tk.Entry(settingwindow)
+
+        entry_bg.insert(0, self.configdata["bgcolor"])
+        entry_keyup.insert(0, self.configdata["key_up"])
+        entry_keydown.insert(0, self.configdata["key_down"])
+        entry_keyright.insert(0, self.configdata["key_right"])
+        entry_keyleft.insert(0, self.configdata["key_left"])
+        entry_bosskey.insert(0, self.configdata["bosskey"])
+        entry_movespeed.insert(0, self.configdata["move_speed"])
+
+        entry_bg.place(x=300, y=20, anchor="e")
+        entry_keyup.place(x=300, y=50, anchor="e")
+        entry_keydown.place(x=300, y=80, anchor="e")
+        entry_keyright.place(x=300, y=110, anchor="e")
+        entry_keyleft.place(x=300, y=140, anchor="e")
+        entry_bosskey.place(x=300, y=170, anchor="e")
+        entry_movespeed.place(x=300, y=200, anchor="e")
+
+        button_save = tk.Button(settingwindow, text="Save", command=save).place(x=100, y=250, anchor="n")
+        button_close = tk.Button(settingwindow, text="Close", command=settingwindow.destroy).place(x=200, y=250,
+                                                                                                   anchor="n")
 
 
 class Leaderboard:
@@ -86,7 +137,7 @@ def help():
     helpwindow.geometry("550x200")
     helpinfo = 'The configuration of game is in "config.json", where you can change setting if you want.\n' \
                'Current setting:\n' \
-               f'UP:{config.keyup} DOWN:{config.keydown} LEFT:{config.keyleft} RIGHT:{config.keyright} BOSSKEY:{config.bosskey}\n\n' \
+               f'UP: {config.configdata["key_up"]} DOWN: {config.configdata["key_down"]} LEFT: {config.configdata["key_left"]} RIGHT: {config.configdata["key_right"]} BOSSKEY: {config.configdata["bosskey"]}\n\n' \
                'In this game, you will play a role as a cat, and you need to eat fish on screen.\n' \
                'Everytime when you eat a fish, you will get 1 point\n' \
                'You can’t touch the edge or the road you have walked.\n' \
@@ -101,22 +152,32 @@ def initialise_window():
     mainwindow.geometry("1600x900")
 
     global Label_Gametitle
-    Label_Gametitle = tk.Label(mainwindow, text="A simple game", bg="#99CCFF", font="Arial 32", width=20, height=5)
+    Label_Gametitle = tk.Label(mainwindow, text="Eat fish game", bg="#99CCFF", font="Arial 32", width=20, height=5)
     Label_Gametitle.pack()
 
     global Button_Play
     Button_Play = tk.Button(mainwindow, text="Start", width=10, height=2, command=startgame)
     global Button_Exit
     Button_Exit = tk.Button(mainwindow, text="Exit", width=10, height=2, command=exit)
+
     global Button_Help
-    Button_Help = tk.Button(mainwindow, text="Help", width=10, height=2, command=help)
+    global Image_Help
+    Image_Help = tk.PhotoImage(file="images/Button-Help-icon.png")
+    Button_Help = tk.Button(mainwindow, image=Image_Help, text="Help", command=help)
+
     global Button_LB  # leaderboard
     Button_LB = tk.Button(mainwindow, text="Leader Board", width=12, height=2, command=leaderboard.displayboard)
+
+    global Button_config  # setting interface
+    global Image_config
+    Image_config = tk.PhotoImage(file="images/settings-icon.png")
+    Button_config = tk.Button(mainwindow, text="Setting", image=Image_config, command=config.setting)
 
     Button_Play.place(x=700, y=350, anchor="center")
     Button_Exit.place(x=900, y=350, anchor="center")
     Button_Help.place(x=800, y=350, anchor="center")
     Button_LB.place(x=800, y=450, anchor="center")
+    Button_config.place(x=800, y=550, anchor="center")
 
     global Username
     Username = "anonymous"  # set default user name
@@ -125,9 +186,7 @@ def initialise_window():
     Label_Nameinput = tk.Label(mainwindow, text="Your user name:", font="Arial 12")
     Label_Nameinput.place(x=720, y=280, anchor="e")
     global NameInput
-    global NameInput_var
-    NameInput_var = tk.StringVar()
-    NameInput = tk.Entry(text="Please enter your username", textvariable=NameInput_var)
+    NameInput = tk.Entry(mainwindow)
     NameInput.place(x=800, y=280, anchor="center")
 
     global Label_Author
@@ -135,10 +194,11 @@ def initialise_window():
     Label_Author.place(x=800, y=800, anchor="center")
 
     global GameCanvas
-    GameCanvas = tk.Canvas(mainwindow, width=config.canvassize[0], height=config.canvassize[1], bg=config.bgcolor)
+    GameCanvas = tk.Canvas(mainwindow, width=config.canvassize[0], height=config.canvassize[1],
+                           bg=config.configdata["bgcolor"])
 
     mainwindow.focus_set()
-    mainwindow.bind(f"<KeyPress-{config.bosskey}>", bosskey)
+    mainwindow.bind(f"<KeyPress-{config.configdata['bosskey']}>", bosskey)
 
 
 def bosskey(event):
@@ -201,27 +261,27 @@ def startgame():
     def Move(direction):
         global distance
         global GameCanvas
-        distance += config.movespeed
+        distance += config.configdata["move_speed"]
         Trajectory.append(GameCanvas.coords(GameCharacter))
         if alive:
             if direction == "up":
                 GameCanvas.create_line(GameCanvas.coords(GameCharacter), GameCanvas.coords(GameCharacter)[0],
-                                       GameCanvas.coords(GameCharacter)[1] - config.movespeed)
-                GameCanvas.move(GameCharacter, 0, -config.movespeed)
+                                       GameCanvas.coords(GameCharacter)[1] - config.configdata["move_speed"])
+                GameCanvas.move(GameCharacter, 0, -config.configdata["move_speed"])
             elif direction == "left":
                 GameCanvas.create_line(GameCanvas.coords(GameCharacter),
-                                       GameCanvas.coords(GameCharacter)[0] - config.movespeed,
+                                       GameCanvas.coords(GameCharacter)[0] - config.configdata["move_speed"],
                                        GameCanvas.coords(GameCharacter)[1])
-                GameCanvas.move(GameCharacter, -config.movespeed, 0)
+                GameCanvas.move(GameCharacter, -config.configdata["move_speed"], 0)
             elif direction == "down":
                 GameCanvas.create_line(GameCanvas.coords(GameCharacter), GameCanvas.coords(GameCharacter)[0],
-                                       GameCanvas.coords(GameCharacter)[1] + config.movespeed)
-                GameCanvas.move(GameCharacter, 0, config.movespeed)
+                                       GameCanvas.coords(GameCharacter)[1] + config.configdata["move_speed"])
+                GameCanvas.move(GameCharacter, 0, config.configdata["move_speed"])
             elif direction == "right":
                 GameCanvas.create_line(GameCanvas.coords(GameCharacter),
-                                       GameCanvas.coords(GameCharacter)[0] + config.movespeed,
+                                       GameCanvas.coords(GameCharacter)[0] + config.configdata["move_speed"],
                                        GameCanvas.coords(GameCharacter)[1])
-                GameCanvas.move(GameCharacter, config.movespeed, 0)
+                GameCanvas.move(GameCharacter, config.configdata["move_speed"], 0)
             GameScoreboard[1].config(text=f"Distance: {distance}")
             GameScoreboard[1].update()
             CheckPos(GameCanvas.coords(GameCharacter))
@@ -244,15 +304,16 @@ def startgame():
         # print(GameCanvas.coords(Fish)) # use for debug
 
     def keyevent(event):
+        # handle key event
         # print(event.char) # use for debug
         global point
-        if event.char == config.keyup:
+        if event.char == config.configdata["key_up"]:
             Move("up")
-        elif event.char == config.keyleft:
+        elif event.char == config.configdata["key_left"]:
             Move("left")
-        elif event.char == config.keydown:
+        elif event.char == config.configdata["key_down"]:
             Move("down")
-        elif event.char == config.keyright:
+        elif event.char == config.configdata["key_right"]:
             Move("right")
         elif event.char == "+":
             point += 1  # cheat code
@@ -268,8 +329,10 @@ def startgame():
     Button_Play.place_forget()
     Button_Help.place_forget()
     Button_LB.place_forget()
+    Button_config.place_forget()
     Label_Author.place_forget()
     Label_Nameinput.place_forget()
+    global NameInput
     NameInput.place_forget()
 
     global point
@@ -281,9 +344,9 @@ def startgame():
 
     global GameCanvas
     global Username
-    global NameInput_var
-    if NameInput_var.get() != "":
-        Username = NameInput_var.get()
+
+    if NameInput.get() != "":
+        Username = NameInput.get()
 
     Trajectory = []  # list to store the trajectory
 

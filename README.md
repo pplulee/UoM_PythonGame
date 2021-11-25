@@ -30,6 +30,6 @@ use "+" and "-" can directly change the points
 
 ### Image source:
 
-cat : https://icons.iconarchive.com/icons/iconka/meow-2/128/cat-hungry-icon.png
-
-fish : https://iconarchive.com/download/i107394/google/noto-emoji-animals-nature/22293-fish.svg
+cat : https://icons.iconarchive.com/icons/iconka/meow-2/128/cat-hungry-icon.png  
+fish : https://iconarchive.com/download/i107394/google/noto-emoji-animals-nature/22293-fish.svg  
+setting-icon : https://icons.iconarchive.com/icons/dtafalonso/android-lollipop/128/Settings-icon.png  

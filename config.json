@@ -1,13 +1,9 @@
 {
-    "bgcolor": "#FFFFCC",
-    "bosskey": "x",
-    "canvas_size": [
-        1600,
-        800
-    ],
-    "key_down": "s",
-    "key_left": "a",
-    "key_right": "d",
-    "key_up": "w",
-    "move_speed": 10
+    "bgcolor":"#FFFFCC",
+    "bosskey":"x",
+    "key_down":"s",
+    "key_left":"a",
+    "key_right":"d",
+    "key_up":"w",
+    "move_speed":10
 }
