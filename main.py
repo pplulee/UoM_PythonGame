@@ -197,15 +197,13 @@ def initialise_window():
     GameCanvas = tk.Canvas(mainwindow, width=config.canvassize[0], height=config.canvassize[1],
                            bg=config.configdata["bgcolor"])
 
-    mainwindow.focus_set()
-    mainwindow.bind(f"<KeyPress-{config.configdata['bosskey']}>", bosskey)
 
 
 def bosskey(event):
     global mainwindow
     global GameCanvas
     mainwindow.withdraw()  # hide the main window
-    while input("Enter Y is you want to back yo game") != "Y":
+    while input("Enter Y if you want to back to game\n") != "Y":
         continue
     mainwindow.update()
     mainwindow.deiconify()
@@ -334,6 +332,9 @@ def startgame():
     Label_Nameinput.place_forget()
     global NameInput
     NameInput.place_forget()
+
+    mainwindow.focus_set()
+    mainwindow.bind(f"<KeyPress-{config.configdata['bosskey']}>", bosskey)
 
     global point
     point = 0
